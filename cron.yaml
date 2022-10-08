@@ -1,0 +1,4 @@
+cron:
+- description: "update"
+  url: /tasks/update
+  schedule: every 30 mins
