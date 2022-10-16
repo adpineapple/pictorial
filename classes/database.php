@@ -112,4 +112,165 @@ class Database
 
         return $status;
     }
+
+    public function insertRow($table, $row_values, $options = array())
+    {
+        $function = 'insertRow';
+
+        $results = array(
+            'inserted' => 0
+        );
+
+        if(empty($table))
+        {
+            $results['error'] = true;
+            $results['error_message'] = 'missing table';
+
+            $this->setLast($function, $results);
+
+            return null;
+        }
+
+        $content = $this->readTable($table);
+
+        if(empty($content) || !is_array($content) || sizeof($content) <= $row_id)
+        {
+            $content = array();
+        }
+
+        $content[] = $row_values;
+
+        $status = $this->writeTable($table, $content, $options);
+
+        $results = array(
+            'inserted' => empty($status) ? 0 : 1
+        );
+
+        $this->setLast($function, $results);
+
+        if($status === false)
+        {
+            return null;
+        }
+
+        return (sizeof($content) - 1);
+    }
+
+    public function updateRow($table, $row_id, $row_values, $options = array())
+    {
+        $function = 'updateRow';
+
+        $results = array(
+            'updated' => 0
+        );
+
+        if(empty($table))
+        {
+            $results['error'] = true;
+            $results['error_message'] = 'missing table';
+
+            $this->setLast($function, $results);
+
+            return false;
+        }
+
+        $content = $this->readTable($table);
+
+        if(empty($content) || !is_array($content) || sizeof($content) <= $row_id)
+        {
+            $this->setLast($function, $results);
+
+            return false;
+        }
+
+        $content[$row_id] = $row_values;
+
+        $status = $this->writeTable($table, $content, $options);
+
+        $results = array(
+            'updated' => empty($status) ? 0 : 1
+        );
+
+        $this->setLast($function, $results);
+
+        return $status;
+    }
+
+    public function deleteRow($table, $line, $options = array())
+    {
+        $function = 'deleteRow';
+
+        $results = array(
+            'deleted' => 0
+        );
+
+        if(empty($table))
+        {
+            $results['error'] = true;
+            $results['error_message'] = 'missing table';
+
+            $this->setLast($function, $results);
+
+            return false;
+        }
+
+        $content = $this->readTable($table);
+
+        if(empty($content) || !is_array($content) || sizeof($content) <= $line)
+        {
+            $this->setLast($function, $results);
+
+            return false;
+        }
+
+        unset($content[$line]);
+
+        $status = $this->writeTable($table, $content, $options);
+
+        $results = array(
+            'deleted' => empty($status) ? 0 : 1
+        );
+
+        $this->setLast($function, $results);
+
+        return $status;
+    }
+
+    public function selectRow($table, $row_id)
+    {
+        $function = 'selectRow';
+
+        $results = array(
+            'found' => 0,
+            'returned' => 0
+        );
+
+        if(empty($table))
+        {
+            $results['error'] = true;
+            $results['error_message'] = 'missing table';
+
+            $this->setLast($function, $results);
+
+            return null;
+        }
+
+        $row = $this->selectRows($table, 1, $row_id);
+
+        if(empty($row) || !is_array($row) || !isset($row[0]))
+        {
+            $this->setLast($function, $results);
+
+            return null;
+        }
+
+        $results = array(
+            'found' => 1,
+            'returned' => 1
+        );
+
+        $this->setLast($function, $results);
+
+        return $row[0];
+    }
 }
