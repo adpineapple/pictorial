@@ -273,4 +273,55 @@ class Database
 
         return $row[0];
     }
+
+    public function selectRows($table, $limit = null, $offset = 0, $offset_id = null)
+    {
+        $function = 'selectRows';
+
+        $results = array(
+            'found' => 0,
+            'returned' => 0,
+            'page' => 1,
+            'less' => false,
+            'more' => false
+        );
+
+        if(empty($table))
+        {
+            $results['error'] = true;
+            $results['error_message'] = 'missing table';
+
+            $this->setLast($function, $results);
+
+            return null;
+        }
+
+        $found = $this->readTable($table);
+
+        if(empty($found) || !is_array($found))
+        {
+            $this->setLast($function, $results);
+
+            return null;
+        }
+
+        $offset = $offset_id !== null ? fn_database_offset_id($found, $limit, $offset_id) : $offset;
+
+        $returned = array_slice($found, $offset, $limit, true);
+
+        $less = isset($found[key(array_slice($returned, 0, 1, true)) - 1]);
+        $more = isset($found[key(array_slice($returned, -1, 1, true)) + 1]);
+
+        $results = array(
+            'found' => sizeof($found),
+            'returned' => sizeof($returned),
+            'page' => fn_database_page($limit, $offset),
+            'less' => $less,
+            'more' => $more
+        );
+
+        $this->setLast($function, $results);
+
+        return $returned;
+    }
 }
